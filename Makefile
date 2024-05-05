@@ -166,6 +166,7 @@ NAME=bootloader-$(BOARD)-$(UF2_VERSION_BASE)
 EXECUTABLE=$(BUILD_PATH)/$(NAME).bin
 SELF_EXECUTABLE=$(BUILD_PATH)/update-$(NAME).uf2
 SELF_EXECUTABLE_INO=$(BUILD_PATH)/update-$(NAME).ino
+EXECUTABLE_LATEST=$(BUILD_PATH)/bootloader-$(BOARD)-latest
 
 SUBMODULES = lib/uf2/README.md
 
@@ -236,6 +237,7 @@ $(EXECUTABLE): $(OBJECTS) $(MCUBOOT_OBJECTS)
 	@echo
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
 	@echo
+	ln -fs $(NAME).elf $(EXECUTABLE_LATEST).elf
 
 $(BUILD_PATH)/uf2_version.h: Makefile
 	echo "#define UF2_VERSION_BASE \"$(UF2_VERSION_BASE)\""> $@
