@@ -8,6 +8,7 @@ endif
 ifeq ($(CHIP_FAMILY), samd51)
 COMMON_FLAGS = -mthumb -mcpu=cortex-m4 -O2 -g -DSAMD51
 endif
+
 WFLAGS = \
 -Werror -Wall -Wstrict-prototypes \
 -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 \
@@ -16,9 +17,15 @@ WFLAGS = \
 -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wno-undef \
 -Wbad-function-cast -Wwrite-strings -Waggregate-return \
 -Wformat -Wmissing-format-attribute \
--Wno-deprecated-declarations -Wpacked -Wnested-externs \
+-Wno-deprecated-declarations -Wpacked \
 -Wunreachable-code -Wcast-align \
 -Wno-missing-braces -Wno-overflow -Wno-shadow -Wno-attributes -Wno-packed -Wno-pointer-sign
+
+# sgi Warnings removed
+# WFLAGS += -Wlong-long
+# WFLAGS += -Wredundant-decls 
+# WFLAGS += -Wnested-externs
+
 CFLAGS = $(COMMON_FLAGS) \
 -x c -c -pipe -nostdlib \
 --param max-inline-insns-single=500 \
