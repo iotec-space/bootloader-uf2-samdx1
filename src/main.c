@@ -91,11 +91,64 @@ extern int8_t led_tick_step;
     #define RESET_CONTROLLER RSTC
 #endif
 
+
+
+#define USE_MCUBOOT 1
+#ifdef USE_MCUBOOT
+
+#include <bootutil/bootutil.h>
+#include <bootutil/image.h>
+#include "flash_map_backend/flash_map_backend.h"
+
+static void do_boot(struct boot_rsp *rsp)
+{
+  const struct flash_area *flash_area;
+//  struct boardioc_boot_info_s info;
+  int area_id;
+  int ret;
+
+  area_id = flash_area_id_from_image_offset(rsp->br_image_off);
+
+  ret = flash_area_open(area_id, &flash_area);
+  assert(ret == 0);
+
+  //syslog(LOG_INFO, "Booting from %s...\n", flash_area->fa_mtd_path);
+
+//  info.path        = flash_area->fa_mtd_path;
+//  info.header_size = rsp->br_hdr->ih_hdr_size;
+
+  flash_area_close(flash_area);
+
+  //
+//  if (boardctl(BOARDIOC_BOOT_IMAGE, (uintptr_t)&info) != OK)
+//    {
+//      //syslog(LOG_ERR, "Failed to load application image!\n");
+//      FIH_PANIC;
+//    }
+}
+
+
+#endif
+
 /**
  * \brief Check the application startup condition
  *
  */
 static void check_start_application(void) {
+
+#ifdef USE_MCUBOOT
+    struct boot_rsp rsp;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    FIH_CALL(boot_go, fih_rc, &rsp);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS))
+      {
+//        syslog(LOG_ERR, "Unable to find bootable image\n");
+        FIH_PANIC;
+      }
+    do_boot(&rsp);
+#endif
+
     uint32_t app_start_address;
 
     /* Load the Reset Handler address of the application */

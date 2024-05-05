@@ -14,9 +14,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License.
  * You may obtain a copy of the Licence at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  rom      (rx)  : ORIGIN = 0x00000000, LENGTH = 16K
+  rom      (rx)  : ORIGIN = 0x00000000, LENGTH = 32K
   ram      (rwx) : ORIGIN = 0x20000000, LENGTH = 192K
 }
 
@@ -143,8 +143,9 @@ SECTIONS
 
     . = ALIGN(4);
     _end = . ;
+    end = . ;
 
-    _binfo_start = 16K - 4 * 4;
+    _binfo_start = 32K - 4 * 4;
     .binfo _binfo_start : {
       KEEP(*(.binfo)) ;
     } > rom

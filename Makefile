@@ -17,7 +17,7 @@ WFLAGS = \
 -Wbad-function-cast -Wwrite-strings -Waggregate-return \
 -Wformat -Wmissing-format-attribute \
 -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs \
--Wlong-long -Wunreachable-code -Wcast-align \
+-Wunreachable-code -Wcast-align \
 -Wno-missing-braces -Wno-overflow -Wno-shadow -Wno-attributes -Wno-packed -Wno-pointer-sign
 CFLAGS = $(COMMON_FLAGS) \
 -x c -c -pipe -nostdlib \
@@ -36,7 +36,8 @@ endif
 
 ifeq ($(CHIP_FAMILY), samd51)
 LINKER_SCRIPT=scripts/samd51j19a.ld
-BOOTLOADER_SIZE=16384
+#BOOTLOADER_SIZE=16384
+BOOTLOADER_SIZE=32768
 SELF_LINKER_SCRIPT=scripts/samd51j19a_self.ld
 endif
 
@@ -84,6 +85,76 @@ SOURCES = $(COMMON_SRC) \
 	src/sam_ba_monitor.c \
 	src/uart_driver.c \
 	src/hid.c \
+
+
+ifeq ($(WITH_MCUBOOT),1)
+INCLUDES += -Iboards/$(BOARD)/mcuboot
+
+MCUBOOT_BOARD_SOURCES += boards/$(BOARD)/mcuboot/flash_area.c
+
+MCUBOOT_OBJECTS += $(patsubst boards/$(BOARD)/mcuboot/%.c,$(BUILD_PATH)/mcuboot/%.o,$(MCUBOOT_BOARD_SOURCES))
+
+INCLUDES += -Ilib/mcuboot/ext/mbedtls-asn1/include
+INCLUDES += -Ilib/mcuboot/boot/bootutil/include
+
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/boot_record.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/bootutil_misc.c
+#MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/bootutil_misc.h
+#MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/bootutil_priv.h
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/bootutil_public.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/caps.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/encrypted.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/fault_injection_hardening.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/fault_injection_hardening_delay_rng_mbedtls.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/image_ecdsa.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/image_ed25519.c
+#MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/image_rsa.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/image_validate.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/loader.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/swap_misc.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/swap_move.c
+#MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/swap_priv.h
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/swap_scratch.c
+MCUBOOT_LIB_SOURCES += lib/mcuboot/boot/bootutil/src/tlv.c
+
+MCUBOOT_OBJECTS += $(patsubst lib/mcuboot/boot/bootutil/src/%.c,$(BUILD_PATH)/mcuboot/lib/%.o,$(MCUBOOT_LIB_SOURCES))
+
+ifeq ($(WITH_MCUBOOT_TINYCRYPT),1)
+INCLUDES += -Ilib/mcuboot/ext/tinycrypt/lib/include
+
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/aes_decrypt.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/aes_encrypt.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/cbc_mode.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ccm_mode.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/cmac_mode.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ctr_mode.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ctr_prng.c
+MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ecc.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ecc_dh.c
+MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ecc_dsa.c
+MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/ecc_platform_specific.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/hmac.c
+#MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/hmac_prng.c
+MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/sha256.c
+MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/utils.c
+
+MCUBOOT_OBJECTS += $(patsubst lib/mcuboot/ext/tinycrypt/lib/source/%.c,$(BUILD_PATH)/mcuboot/tinycrypt/%.o,$(MCUBOOT_TINYCRYPT_SOURCES))
+
+$(BUILD_PATH)/mcuboot/tinycrypt/%.o: lib/mcuboot/ext/tinycrypt/lib/source/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
+	mkdir -p $(BUILD_PATH)/mcuboot/tinycrypt
+	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+
+endif
+
+$(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
+	mkdir -p $(BUILD_PATH)/mcuboot
+	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+
+$(BUILD_PATH)/mcuboot/lib/%.o: lib/mcuboot/boot/bootutil/src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
+	mkdir -p $(BUILD_PATH)/mcuboot/lib
+	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+endif
+
 
 SELF_SOURCES = $(COMMON_SRC) \
 	src/selfmain.c
@@ -157,10 +228,10 @@ dirs:
 	@echo "Building $(BOARD)"
 	-@mkdir -p $(BUILD_PATH)
 
-$(EXECUTABLE): $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS) $(MCUBOOT_OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
 		 -T$(LINKER_SCRIPT) \
-		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS)
+		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS) $(MCUBOOT_OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/$(NAME).elf $@
 	@echo
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
