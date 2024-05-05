@@ -2,10 +2,10 @@
 #define BOARD_CONFIG_H
 
 #define VENDOR_NAME "RIVIR"
-#define PRODUCT_NAME "bloader_PetroAlpha_BB-1"
+#define PRODUCT_NAME "bloader_M4_CAN"
 #define VOLUME_LABEL "RIVIRBOOT"
 #define INDEX_URL "http://rivir.space"
-#define BOARD_ID "SAME51J20A-RIVIR-PA-BB1"
+#define BOARD_ID "SAME51J20A-RIVIR-M4-1"
 
 #define USB_VID 0x239A
 #define USB_PID 0x00CD
