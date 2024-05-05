@@ -12,7 +12,7 @@
 #define UF2_FAMILY 0x68ed2b88
 #endif
 #ifdef SAMD51
-#define APP_START_ADDRESS 0x00004000
+#define APP_START_ADDRESS 0x00008000
 #define UF2_FAMILY 0x55114460
 #endif
 
