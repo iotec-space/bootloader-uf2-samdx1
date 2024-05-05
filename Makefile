@@ -16,7 +16,7 @@ WFLAGS = \
 -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wno-undef \
 -Wbad-function-cast -Wwrite-strings -Waggregate-return \
 -Wformat -Wmissing-format-attribute \
--Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs \
+-Wno-deprecated-declarations -Wpacked -Wnested-externs \
 -Wunreachable-code -Wcast-align \
 -Wno-missing-braces -Wno-overflow -Wno-shadow -Wno-attributes -Wno-packed -Wno-pointer-sign
 CFLAGS = $(COMMON_FLAGS) \
