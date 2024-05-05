@@ -8,7 +8,6 @@ endif
 ifeq ($(CHIP_FAMILY), samd51)
 COMMON_FLAGS = -mthumb -mcpu=cortex-m4 -O2 -g -DSAMD51
 endif
-
 WFLAGS = \
 -Werror -Wall -Wstrict-prototypes \
 -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 \
@@ -17,15 +16,9 @@ WFLAGS = \
 -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wno-undef \
 -Wbad-function-cast -Wwrite-strings -Waggregate-return \
 -Wformat -Wmissing-format-attribute \
--Wno-deprecated-declarations -Wpacked \
--Wunreachable-code -Wcast-align \
+-Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs \
+-Wlong-long -Wunreachable-code -Wcast-align \
 -Wno-missing-braces -Wno-overflow -Wno-shadow -Wno-attributes -Wno-packed -Wno-pointer-sign
-
-# sgi Warnings removed
-# WFLAGS += -Wlong-long
-# WFLAGS += -Wredundant-decls 
-# WFLAGS += -Wnested-externs
-
 CFLAGS = $(COMMON_FLAGS) \
 -x c -c -pipe -nostdlib \
 --param max-inline-insns-single=500 \
@@ -43,8 +36,7 @@ endif
 
 ifeq ($(CHIP_FAMILY), samd51)
 LINKER_SCRIPT=scripts/samd51j19a.ld
-#BOOTLOADER_SIZE=16384
-BOOTLOADER_SIZE=32768
+BOOTLOADER_SIZE=16384
 SELF_LINKER_SCRIPT=scripts/samd51j19a_self.ld
 endif
 
@@ -93,8 +85,20 @@ SOURCES = $(COMMON_SRC) \
 	src/uart_driver.c \
 	src/hid.c \
 
+SELF_SOURCES = $(COMMON_SRC) \
+	src/selfmain.c
+
+OBJECTS = $(patsubst src/%.c,$(BUILD_PATH)/%.o,$(SOURCES))
+SELF_OBJECTS = $(patsubst src/%.c,$(BUILD_PATH)/%.o,$(SELF_SOURCES)) $(BUILD_PATH)/selfdata.o
+
 
 ifeq ($(WITH_MCUBOOT),1)
+WFLAGS += -Wno-long-long
+WFLAGS += -Wno-redundant-decls 
+WFLAGS += -Wno-nested-externs
+BOOTLOADER_SIZE=32768
+
+
 INCLUDES += -Iboards/$(BOARD)/mcuboot
 
 MCUBOOT_BOARD_SOURCES += boards/$(BOARD)/mcuboot/flash_area.c
@@ -153,6 +157,8 @@ $(BUILD_PATH)/mcuboot/tinycrypt/%.o: lib/mcuboot/ext/tinycrypt/lib/source/%.c $(
 
 endif
 
+OBJECTS += $(MCUBOOT_OBJECTS)
+
 $(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
@@ -162,12 +168,6 @@ $(BUILD_PATH)/mcuboot/lib/%.o: lib/mcuboot/boot/bootutil/src/%.c $(wildcard inc/
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 endif
 
-
-SELF_SOURCES = $(COMMON_SRC) \
-	src/selfmain.c
-
-OBJECTS = $(patsubst src/%.c,$(BUILD_PATH)/%.o,$(SOURCES))
-SELF_OBJECTS = $(patsubst src/%.c,$(BUILD_PATH)/%.o,$(SELF_SOURCES)) $(BUILD_PATH)/selfdata.o
 
 NAME=bootloader-$(BOARD)-$(UF2_VERSION_BASE)
 EXECUTABLE=$(BUILD_PATH)/$(NAME).bin
@@ -236,10 +236,10 @@ dirs:
 	@echo "Building $(BOARD)"
 	-@mkdir -p $(BUILD_PATH)
 
-$(EXECUTABLE): $(OBJECTS) $(MCUBOOT_OBJECTS)
+$(EXECUTABLE): $(OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
 		 -T$(LINKER_SCRIPT) \
-		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS) $(MCUBOOT_OBJECTS)
+		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/$(NAME).elf $@
 	@echo
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
