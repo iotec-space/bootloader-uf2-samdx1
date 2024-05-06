@@ -141,12 +141,12 @@ static void check_start_application(void) {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     FIH_CALL(boot_go, fih_rc, &rsp);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS))
+    if (FIH_EQ(fih_rc, FIH_SUCCESS))
       {
+        do_boot(&rsp);
 //        syslog(LOG_ERR, "Unable to find bootable image\n");
         FIH_PANIC;
       }
-    do_boot(&rsp);
 #endif
 
     uint32_t app_start_address;

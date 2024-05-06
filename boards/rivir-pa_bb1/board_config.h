@@ -2,7 +2,7 @@
 #define BOARD_CONFIG_H
 
 #define VENDOR_NAME "RIVIR"
-#define PRODUCT_NAME "bloader_PetroAlpha_BB-1"
+#define PRODUCT_NAME "bloader PetroAlpha_BB-1"
 #define VOLUME_LABEL "RIVIRBOOT"
 #define INDEX_URL "http://rivir.space"
 #define BOARD_ID "SAME51J20A-RIVIR-PA-BB1"

@@ -1,7 +1,7 @@
 // Copyright © RIVIR rivir.space
 
-#ifndef _INCLUDE_FLASH_MAP_BACKEND_FLASH_MAP_BACKEND_H
-#define _INCLUDE_FLASH_MAP_BACKEND_FLASH_MAP_BACKEND_H
+#ifndef __FLASH_MAP_BACKEND_H
+#define __FLASH_MAP_BACKEND_H
 
 
 #include <inttypes.h>
@@ -23,7 +23,7 @@ struct flash_area
   uint32_t    fa_size;       /* The size of this sector */
 
   /* Implementation-specific fields */
-  
+  int         fa_open_counter;
 };
 
 /* Structure describing a sector within a flash area. */
@@ -88,4 +88,4 @@ int flash_area_id_from_image_offset(uint32_t offset);
 }
 #endif
 
-#endif /* _INCLUDE_FLASH_MAP_BACKEND_FLASH_MAP_BACKEND_H */
+#endif /* __FLASH_MAP_BACKEND_H */
