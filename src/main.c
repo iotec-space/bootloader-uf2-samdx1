@@ -135,20 +135,6 @@ static void do_boot(struct boot_rsp *rsp)
  *
  */
 static void check_start_application(void) {
-
-#ifdef USE_MCUBOOT
-    struct boot_rsp rsp;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    FIH_CALL(boot_go, fih_rc, &rsp);
-    if (FIH_EQ(fih_rc, FIH_SUCCESS))
-      {
-        do_boot(&rsp);
-//        syslog(LOG_ERR, "Unable to find bootable image\n");
-        FIH_PANIC;
-      }
-#endif
-
     uint32_t app_start_address;
 
     /* Load the Reset Handler address of the application */
@@ -342,6 +328,17 @@ int main(void) {
 
     assert(8 << NVMCTRL->PARAM.bit.PSZ == FLASH_PAGE_SIZE);
     assert(FLASH_PAGE_SIZE * NVMCTRL->PARAM.bit.NVMP == FLASH_SIZE);
+
+#ifdef USE_MCUBOOT
+    struct boot_rsp rsp;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    FIH_CALL(boot_go, fih_rc, &rsp);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS))
+    {
+        do_boot(&rsp);
+    }
+#endif
 
     /* Jump in application if condition is satisfied */
     check_start_application();
