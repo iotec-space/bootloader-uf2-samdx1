@@ -14,8 +14,6 @@ extern "C" {
 
 struct flash_area
 {
-  /* MCUboot-API fields */
-
   uint8_t     fa_id;         /* The slot/scratch ID */
   uint8_t     fa_device_id;  /* The device ID (usually there's only one) */
   uint16_t    pad16;         /* Padding */

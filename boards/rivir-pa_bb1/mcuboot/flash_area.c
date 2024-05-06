@@ -68,12 +68,11 @@ void flash_area_close(const struct flash_area *fa)
 	struct flash_area * fa_active = (struct flash_area *)fa;
 	fa_active->fa_open_counter--;
 
-	if (fa_active->fa_open_counter > 0) {  // Still open somewhere
-		return;
+	if (fa_active->fa_open_counter <= 0) {  // The last time we are closing it
+		// Do whatever to close the flash
+		fa_active->fa_open_counter = 0;
 	}
 
-	// Do whatever to close the flash
-	fa_active->fa_open_counter = 0;
 	return;
 }
 
