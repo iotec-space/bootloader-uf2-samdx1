@@ -244,7 +244,8 @@ $(EXECUTABLE): $(OBJECTS)
 	@echo
 	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
 	@echo
-	ln -fs $(NAME).elf $(EXECUTABLE_LATEST).elf
+	ln -fs $(NAME).bin $(EXECUTABLE_LATEST).bin  # For flashing
+	ln -fs $(NAME).elf $(EXECUTABLE_LATEST).elf  # For debugging
 
 $(BUILD_PATH)/uf2_version.h: Makefile
 	echo "#define UF2_VERSION_BASE \"$(UF2_VERSION_BASE)\""> $@
