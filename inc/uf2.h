@@ -210,6 +210,7 @@ void panic(int code);
 #endif
 
 extern volatile bool b_sam_ba_interface_usart;
+void flash_read_words(uint32_t *dst, uint32_t *src, uint32_t n_words);
 void flash_write_row(uint32_t *dst, uint32_t *src);
 void flash_erase_to_end(uint32_t *start_address);
 void flash_write_words(uint32_t *dst, uint32_t *src, uint32_t n_words);

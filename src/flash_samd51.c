@@ -1,9 +1,14 @@
 #include "uf2.h"
 
 // this actually generates less code than a function
-#define wait_ready()                                                                               \
+#define wait_ready()                                                                              \
     while (NVMCTRL->STATUS.bit.READY == 0)                                                        \
         ;
+
+void flash_read_words(uint32_t *dst, uint32_t *src, uint32_t n_words) {
+	wait_ready();
+	copy_words(dst, src, n_words);
+}
 
 void flash_erase_block(uint32_t *dst) {
     wait_ready();

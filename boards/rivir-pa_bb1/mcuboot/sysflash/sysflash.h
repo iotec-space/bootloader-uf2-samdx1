@@ -12,6 +12,8 @@
 #define FLASH_AREA_SPARE                         (3)
 #define FLASH_AREA_IMAGE_SECONDARY(image_index)  ((image_index*1) + 4)
 
+#define IMAGES_MAX 1
+#define SLOTS_MAX  2
 #define FLASH_AREA_ID_MAX 5
 
 

@@ -3,8 +3,9 @@
 #include "flash_map_backend/flash_map_backend.h"
 #include "sysflash/sysflash.h"
 
+#include "uf2.h"
 
-static struct flash_area flash_partitions[FLASH_AREA_ID_MAX] =
+static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 {
 	{
 		.fa_id = FLASH_AREA_BOOTLOADER,
@@ -42,19 +43,22 @@ static struct flash_area flash_partitions[FLASH_AREA_ID_MAX] =
 	},
 };
 
+static int fa_index_by_image[IMAGES_MAX * 2] = {
+	2, 4
+};
+
 int flash_area_open(uint8_t id, const struct flash_area **fa)
 {
 	if (id >= FLASH_AREA_ID_MAX)
 		return -1;
 
-	struct flash_area * fa_active = &flash_partitions[id];
+	struct flash_area * fa_active = &flash_areas[id];
 	fa_active->fa_open_counter++;
 
-	if (fa_active->fa_open_counter > 1) {  // Already open
-		return 0;
+	if (fa_active->fa_open_counter == 1) {  // First time: open the flash
+		// Do whatever to open the flash
 	}
 
-	// Do whatever to open the flash
 	*fa = fa_active;
 	return 0;
 }
@@ -75,6 +79,7 @@ void flash_area_close(const struct flash_area *fa)
 
 int flash_area_read(const struct flash_area *fa, uint32_t off, void *dst, uint32_t len)
 {
+	flash_read_words(dst, (void *)(fa->fa_off + off), len / 4);
 	return 0;
 }
 
@@ -96,18 +101,30 @@ uint8_t flash_area_erased_val(const struct flash_area *fap)
 
 uint32_t flash_area_align(const struct flash_area *fa)
 {
-	return 256;
+	return 4096;
 }
 
-int flash_area_get_sectors(int fa_id, uint32_t *count,
-                           struct flash_sector *sectors)
+int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors)
 {
-	return 0;
+#define SECTOR_SIZE 4096
+
+    size_t off;
+	uint32_t total_count = 0;
+    const struct flash_area *fa = &flash_areas[fa_id];
+
+	for (off = 0; off < fa->fa_size; off += SECTOR_SIZE)
+	{
+	    sectors[total_count].fs_off = off;
+	    sectors[total_count].fs_size = SECTOR_SIZE;
+	    total_count++;
+	}
+    *count = total_count;
+    return 0;
 }
 
 int flash_area_id_from_multi_image_slot(int image_index, int slot)
 {
-	return 0;
+	return fa_index_by_image[image_index * SLOTS_MAX + slot];
 }
 
 int flash_area_id_from_image_slot(int slot)
