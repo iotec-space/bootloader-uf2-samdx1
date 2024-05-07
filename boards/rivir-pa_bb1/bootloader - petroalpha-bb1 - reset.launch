@@ -50,6 +50,13 @@
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="bootloader-uf2"/>
     <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
-    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;memoryBlockExpressionList context=&quot;Context string&quot;/&gt;&#10;"/>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+        <listEntry value="/bootloader-uf2"/>
+    </listAttribute>
+    <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+        <listEntry value="4"/>
+    </listAttribute>
+    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;memoryBlockExpressionList context=&quot;Context string&quot;&gt;&#10;    &lt;memoryBlockExpression address=&quot;536932656&quot; label=&quot;hash&quot;/&gt;&#10;    &lt;memoryBlockExpression address=&quot;536932688&quot; label=&quot;buf&quot;/&gt;&#10;    &lt;memoryBlockExpression address=&quot;524288&quot; label=&quot;0x00080000&quot;/&gt;&#10;    &lt;memoryBlockExpression address=&quot;65536&quot; label=&quot;0x00010000&quot;/&gt;&#10;    &lt;memoryBlockExpression address=&quot;0&quot; label=&quot;0x00000000&quot;/&gt;&#10;    &lt;memoryBlockExpression address=&quot;589824&quot; label=&quot;0x00090000&quot;/&gt;&#10;&lt;/memoryBlockExpressionList&gt;&#10;"/>
     <stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
 </launchConfiguration>
