@@ -58,6 +58,11 @@
  * the default upgrade mode.
  */
 
+// #define MCUBOOT_SINGLE_APPLICATION_SLOT
+// #define MCUBOOT_DIRECT_XIP
+// #define MCUBOOT_SWAP_USING_MOVE 1
+#define MCUBOOT_SWAP_USING_SCRATCH 1
+
 /* Uncomment to enable the overwrite-only code path. */
 /* #define MCUBOOT_OVERWRITE_ONLY */
 

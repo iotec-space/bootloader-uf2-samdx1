@@ -100,7 +100,7 @@ uint8_t flash_area_erased_val(const struct flash_area *fap)
 
 uint32_t flash_area_align(const struct flash_area *fa)
 {
-	return 4096;
+	return 1;
 }
 
 int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors)

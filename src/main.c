@@ -100,31 +100,10 @@ extern int8_t led_tick_step;
 #include <bootutil/image.h>
 #include "flash_map_backend/flash_map_backend.h"
 
-static void do_boot(struct boot_rsp *rsp)
-{
-  const struct flash_area *flash_area;
-//  struct boardioc_boot_info_s info;
-  int area_id;
-  int ret;
-
-  area_id = flash_area_id_from_image_offset(rsp->br_image_off);
-
-  ret = flash_area_open(area_id, &flash_area);
-  assert(ret == 0);
-
-  //syslog(LOG_INFO, "Booting from %s...\n", flash_area->fa_mtd_path);
-
-//  info.path        = flash_area->fa_mtd_path;
-//  info.header_size = rsp->br_hdr->ih_hdr_size;
-
-  flash_area_close(flash_area);
-
-  //
-//  if (boardctl(BOARDIOC_BOOT_IMAGE, (uintptr_t)&info) != OK)
-//    {
-//      //syslog(LOG_ERR, "Failed to load application image!\n");
-//      FIH_PANIC;
-//    }
+static void start_via_vtor(uint32_t *vtor) {
+	__set_MSP(vtor[0]);
+	SCB->VTOR = ((uint32_t)vtor & SCB_VTOR_TBLOFF_Msk);
+	asm("bx %0" ::"r"(vtor[1]));
 }
 
 
@@ -319,6 +298,7 @@ int main(void) {
     // Delay a bit so SWD programmer can have time to attach.
     delay(15);
 #endif
+
     led_init();
 
     logmsg("Start");
@@ -336,7 +316,11 @@ int main(void) {
     FIH_CALL(boot_go, fih_rc, &rsp);
     if (FIH_EQ(fih_rc, FIH_SUCCESS))
     {
-        do_boot(&rsp);
+        LED_MSC_OFF();
+
+        // Find the VTOR in the image.
+    	uint32_t * vtor_addr = (uint32_t *)(rsp.br_image_off + rsp.br_hdr->ih_hdr_size);
+	    start_via_vtor(vtor_addr);
     }
 #endif
 
