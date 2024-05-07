@@ -11,3 +11,4 @@ TAGS
 
 .venv/
 *.pyc
+.settings
