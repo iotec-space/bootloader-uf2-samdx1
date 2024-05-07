@@ -6,7 +6,7 @@ ifeq ($(CHIP_FAMILY), samd21)
 COMMON_FLAGS = -mthumb -mcpu=cortex-m0plus -Os -g -DSAMD21
 endif
 ifeq ($(CHIP_FAMILY), samd51)
-COMMON_FLAGS = -mthumb -mcpu=cortex-m4 -O2 -g -DSAMD51
+COMMON_FLAGS = -mthumb -mcpu=cortex-m4 -Og -g -DSAMD51
 endif
 WFLAGS = \
 -Werror -Wall -Wstrict-prototypes \
@@ -159,11 +159,11 @@ endif
 
 OBJECTS += $(MCUBOOT_OBJECTS)
 
-$(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
+$(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 
-$(BUILD_PATH)/mcuboot/lib/%.o: lib/mcuboot/boot/bootutil/src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
+$(BUILD_PATH)/mcuboot/lib/%.o: lib/mcuboot/boot/bootutil/src/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot/lib
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 endif
