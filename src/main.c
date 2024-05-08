@@ -92,9 +92,7 @@ extern int8_t led_tick_step;
 #endif
 
 
-
-#define USE_MCUBOOT 1
-#ifdef USE_MCUBOOT
+#ifdef WITH_MCUBOOT
 
 #include <bootutil/bootutil.h>
 #include <bootutil/image.h>
@@ -106,8 +104,8 @@ static void start_via_vtor(uint32_t *vtor) {
 	asm("bx %0" ::"r"(vtor[1]));
 }
 
-
 #endif
+
 
 /**
  * \brief Check the application startup condition
@@ -309,7 +307,7 @@ int main(void) {
     assert(8 << NVMCTRL->PARAM.bit.PSZ == FLASH_PAGE_SIZE);
     assert(FLASH_PAGE_SIZE * NVMCTRL->PARAM.bit.NVMP == FLASH_SIZE);
 
-#ifdef USE_MCUBOOT
+#ifdef WITH_MCUBOOT
     struct boot_rsp rsp;
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
