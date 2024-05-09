@@ -96,6 +96,9 @@ ifeq ($(WITH_MCUBOOT),1)
 WFLAGS += -Wno-long-long
 WFLAGS += -Wno-redundant-decls 
 WFLAGS += -Wno-nested-externs
+
+CFLAGS += -DWITH_MCUBOOT
+
 BOOTLOADER_SIZE=32768
 
 

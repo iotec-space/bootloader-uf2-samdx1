@@ -93,7 +93,6 @@ extern int8_t led_tick_step;
 
 
 #ifdef WITH_MCUBOOT
-
 #include <bootutil/bootutil.h>
 #include <bootutil/image.h>
 #include "flash_map_backend/flash_map_backend.h"
