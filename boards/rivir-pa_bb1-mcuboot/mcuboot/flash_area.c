@@ -103,10 +103,9 @@ uint32_t flash_area_align(const struct flash_area *fa)
 	return 1;
 }
 
+#define SECTOR_SIZE 4096
 int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors)
 {
-#define SECTOR_SIZE 4096
-
     size_t off;
 	uint32_t total_count = 0;
     const struct flash_area *fa = &flash_areas[fa_id];

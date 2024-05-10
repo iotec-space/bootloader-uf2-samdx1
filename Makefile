@@ -98,7 +98,6 @@ WFLAGS += -Wno-redundant-decls
 WFLAGS += -Wno-nested-externs
 
 CFLAGS += -DWITH_MCUBOOT
-
 BOOTLOADER_SIZE=32768
 
 
@@ -135,6 +134,7 @@ MCUBOOT_OBJECTS += $(patsubst lib/mcuboot/boot/bootutil/src/%.c,$(BUILD_PATH)/mc
 
 ifeq ($(WITH_MCUBOOT_TINYCRYPT),1)
 INCLUDES += -Ilib/mcuboot/ext/tinycrypt/lib/include
+CFLAGS_MCUBOOT += -DMCUBOOT_USE_TINYCRYPT
 
 #MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/aes_decrypt.c
 #MCUBOOT_TINYCRYPT_SOURCES += lib/mcuboot/ext/tinycrypt/lib/source/aes_encrypt.c
@@ -156,7 +156,7 @@ MCUBOOT_OBJECTS += $(patsubst lib/mcuboot/ext/tinycrypt/lib/source/%.c,$(BUILD_P
 
 $(BUILD_PATH)/mcuboot/tinycrypt/%.o: lib/mcuboot/ext/tinycrypt/lib/source/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot/tinycrypt
-	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_MCUBOOT) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 
 endif
 
@@ -164,11 +164,11 @@ OBJECTS += $(MCUBOOT_OBJECTS)
 
 $(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot
-	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_MCUBOOT) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 
 $(BUILD_PATH)/mcuboot/lib/%.o: lib/mcuboot/boot/bootutil/src/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot/lib
-	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
+	$(CC) $(CFLAGS) $(CFLAGS_MCUBOOT) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 endif
 
 

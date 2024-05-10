@@ -2,7 +2,7 @@
 #define BOARD_CONFIG_H
 
 #define VENDOR_NAME "RIVIR"
-#define PRODUCT_NAME "bloader M4_CAN"
+#define PRODUCT_NAME "MCUboot M4_CAN"
 #define VOLUME_LABEL "RIVIRBOOT"
 #define INDEX_URL "http://rivir.space"
 #define BOARD_ID "SAME51J20A-RIVIR-M4-1"

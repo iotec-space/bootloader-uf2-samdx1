@@ -11,7 +11,7 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_BOOTLOADER,
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00000000,
-		.fa_size = 0x00007000,   // 28K K
+		.fa_size = 0x00007000,   // 28 K
 	},
 
 	{
@@ -25,21 +25,14 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_IMAGE_PRIMARY(0),
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00008000,  // 32 K
-		.fa_size = 0x00038000,  // 256 K - 32 K = 224 K
-	},
-
-	{
-		.fa_id = FLASH_AREA_SPARE,
-		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00040000,  // 256 K
-		.fa_size = 0x00008000,  // 32 K
+		.fa_size = 0x00078000,  // 512 K - 32 K = 480 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SECONDARY(0),
-		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00048000,  // 256 K + 64 K = 330 K
-		.fa_size = 0x00038000,  // 256 K - 64 K = 196 K
+		.fa_device_id = FLASH_DEV_QSPI,
+		.fa_off  = 0x00000000,  // 256 K + 64 K = 330 K
+		.fa_size = 0x00080000,  // 512 K
 	},
 };
 
@@ -98,14 +91,12 @@ uint8_t flash_area_erased_val(const struct flash_area *fap)
 	return 0xFF;
 }
 
-
-#define SECTOR_SIZE 4096
-
 uint32_t flash_area_align(const struct flash_area *fa)
 {
-	return SECTOR_SIZE;
+	return 1;
 }
 
+#define SECTOR_SIZE 4096
 int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors)
 {
     size_t off;
