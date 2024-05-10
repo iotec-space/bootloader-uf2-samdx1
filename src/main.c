@@ -103,8 +103,38 @@ static void start_via_vtor(uint32_t *vtor) {
 	asm("bx %0" ::"r"(vtor[1]));
 }
 
-#endif
+static void check_start_application(void) {
 
+    if (RESET_CONTROLLER->RCAUSE.bit.POR) {
+        *DBL_TAP_PTR = 0;
+    }
+    else if (*DBL_TAP_PTR == DBL_TAP_MAGIC) {
+        *DBL_TAP_PTR = 0;
+        return; // stay in bootloader
+    }
+    else {
+        if (*DBL_TAP_PTR != DBL_TAP_MAGIC_QUICK_BOOT) {
+            *DBL_TAP_PTR = DBL_TAP_MAGIC;
+            delay(500);
+        }
+        *DBL_TAP_PTR = 0;
+    }
+
+    struct boot_rsp rsp;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    FIH_CALL(boot_go, fih_rc, &rsp);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS))
+    {
+        LED_MSC_OFF();
+
+        // Find the VTOR in the image.
+    	uint32_t * vtor_addr = (uint32_t *)(rsp.br_image_off + rsp.br_hdr->ih_hdr_size);
+	    start_via_vtor(vtor_addr);
+    }
+}
+
+#else
 
 /**
  * \brief Check the application startup condition
@@ -169,6 +199,8 @@ static void check_start_application(void) {
     /* Jump to application Reset Handler in the application */
     asm("bx %0" ::"r"(app_start_address));
 }
+
+#endif
 
 extern char _etext;
 extern char _end;
@@ -305,21 +337,6 @@ int main(void) {
 
     assert(8 << NVMCTRL->PARAM.bit.PSZ == FLASH_PAGE_SIZE);
     assert(FLASH_PAGE_SIZE * NVMCTRL->PARAM.bit.NVMP == FLASH_SIZE);
-
-#ifdef WITH_MCUBOOT
-    struct boot_rsp rsp;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    FIH_CALL(boot_go, fih_rc, &rsp);
-    if (FIH_EQ(fih_rc, FIH_SUCCESS))
-    {
-        LED_MSC_OFF();
-
-        // Find the VTOR in the image.
-    	uint32_t * vtor_addr = (uint32_t *)(rsp.br_image_off + rsp.br_hdr->ih_hdr_size);
-	    start_via_vtor(vtor_addr);
-    }
-#endif
 
     /* Jump in application if condition is satisfied */
     check_start_application();
