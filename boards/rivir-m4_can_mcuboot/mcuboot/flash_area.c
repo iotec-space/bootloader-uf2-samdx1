@@ -25,14 +25,14 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_IMAGE_PRIMARY(0),
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00008000,  // 32 K
-		.fa_size = 0x00078000,  // 512 K - 32 K = 480 K
+		.fa_size = 0x00038000,  // 256 K - 32 K = 224 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SECONDARY(0),
-		.fa_device_id = FLASH_DEV_QSPI,
-		.fa_off  = 0x00000000,  // 256 K + 64 K = 330 K
-		.fa_size = 0x00080000,  // 512 K
+		.fa_device_id = FLASH_DEV_INTERNAL,
+		.fa_off  = 0x00048000,  // 256 K + 32 K = 330 K
+		.fa_size = 0x00038000,  // 256 K - 32 K = 224 K
 	},
 };
 
