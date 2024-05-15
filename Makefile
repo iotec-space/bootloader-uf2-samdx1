@@ -1,6 +1,7 @@
 BOARD=zero
+BOARD_DIR ?= boards/$(BOARD)
 -include Makefile.user
-include boards/$(BOARD)/board.mk
+include $(BOARD_DIR)/board.mk
 CC=arm-none-eabi-gcc
 ifeq ($(CHIP_FAMILY), samd21)
 COMMON_FLAGS = -mthumb -mcpu=cortex-m0plus -Os -g -DSAMD21
@@ -47,7 +48,7 @@ LDFLAGS= $(COMMON_FLAGS) \
 --specs=nano.specs --specs=nosys.specs
 BUILD_PATH=build/$(BOARD)
 INCLUDES = -I. -I./inc -I./inc/preprocessor
-INCLUDES += -I./boards/$(BOARD) -Ilib/cmsis/CMSIS/Include -Ilib/usb_msc
+INCLUDES += -I$(BOARD_DIR) -Ilib/cmsis/CMSIS/Include -Ilib/usb_msc
 INCLUDES += -I$(BUILD_PATH)
 
 
@@ -101,11 +102,11 @@ CFLAGS += -DWITH_MCUBOOT
 BOOTLOADER_SIZE=32768
 
 
-INCLUDES += -Iboards/$(BOARD)/mcuboot
+INCLUDES += -I$(BOARD_DIR)/mcuboot
 
-MCUBOOT_BOARD_SOURCES += boards/$(BOARD)/mcuboot/flash_area.c
+MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_area.c
 
-MCUBOOT_OBJECTS += $(patsubst boards/$(BOARD)/mcuboot/%.c,$(BUILD_PATH)/mcuboot/%.o,$(MCUBOOT_BOARD_SOURCES))
+MCUBOOT_OBJECTS += $(patsubst $(BOARD_DIR)/mcuboot/%.c,$(BUILD_PATH)/mcuboot/%.o,$(MCUBOOT_BOARD_SOURCES))
 
 INCLUDES += -Ilib/mcuboot/ext/mbedtls-asn1/include
 INCLUDES += -Ilib/mcuboot/boot/bootutil/include
@@ -162,7 +163,7 @@ endif
 
 OBJECTS += $(MCUBOOT_OBJECTS)
 
-$(BUILD_PATH)/mcuboot/%.o: boards/$(BOARD)/mcuboot/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
+$(BUILD_PATH)/mcuboot/%.o: $(BOARD_DIR)/mcuboot/%.c $(wildcard inc/*.h boards/**/*.h) $(BUILD_PATH)/uf2_version.h
 	mkdir -p $(BUILD_PATH)/mcuboot
 	$(CC) $(CFLAGS) $(CFLAGS_MCUBOOT) $(BLD_EXTA_FLAGS) $(INCLUDES) $(MCUBOOT_INCLUDES) $< -o $@
 
@@ -298,7 +299,7 @@ drop-board: all
 # .ino works only for SAMD21 right now; suppress for SAMD51
 ifeq ($(CHIP_FAMILY),samd21)
 	cp $(SELF_EXECUTABLE_INO) build/drop/$(BOARD)/
-	cp boards/$(BOARD)/board_config.h build/drop/$(BOARD)/
+	cp $(BOARD_DIR)/board_config.h build/drop/$(BOARD)/
 endif
 
 drop-pkg:
