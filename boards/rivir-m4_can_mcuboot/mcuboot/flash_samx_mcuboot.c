@@ -19,15 +19,54 @@ int samx_open(void * hw) {
 void samx_close(void * hw) {
 }
 
-int samx_read(void * hw, uint32_t addr, void * dest, uint32_t len) {
+int samx_read(void * hw, uint32_t src, void * dest, uint32_t len) {
     wait_ready();
-    memcpy(dest, (void *)addr, len);
+    memcpy(dest, (void *)src, len);
 	return 0;
 }
 
-int samx_write(void * hw, uint32_t addr, const void * src, uint32_t len) {
+int samx_write(void * hw, uint32_t dest, const void * src, uint32_t len) {
+    uint32_t dest_a = dest & ~0x03;  // 4-byte aligned
+    int ofs = dest - dest_a;         // Offset between actual address and aligned address
+    uint32_t qwbuf[4];
+    int qwbuf_c = ofs;
+    uint8_t * qwbuf_p = (uint8_t *)qwbuf;
+    const uint8_t * src_p = (const uint8_t *)src;
+
+    // Set manual mode
     wait_ready();
-    return 1;
+	NVMCTRL->CTRLA.bit.WMODE = NVMCTRL_CTRLA_WMODE_MAN;
+
+    // Clear page buffer
+    wait_ready();
+    NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_PBC;
+
+    while (len > 0) {
+    	samx_read(hw, dest_a, qwbuf, 16);  // Read 4 words into buffer
+    	do {  // Copy bytes from src into the buf until 16 bytes or
+    		*qwbuf_p = *src_p;
+    		qwbuf_p++;
+    		src_p++;
+    		qwbuf_c++;
+    		len--;
+    	} while ((qwbuf_c < 16) && (len > 0));
+
+    	// Copy the qwbuf to the page buffer
+    	for (int i = 0; i < 4; i++) {
+    		((uint32_t *)dest_a)[i] = qwbuf[i];
+    	}
+
+    	// Trigger the Write-Quad-Word command at the required address
+        wait_ready();
+        NVMCTRL->ADDR.reg = (uint32_t)dest_a;
+        NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_WQW;
+
+        dest_a += 16;
+        qwbuf_c = 0;
+        qwbuf_p = (uint8_t *)qwbuf;  // Point back to the start of the QWbuffer.
+    }
+
+    return 0;
 }
 
 int samx_erase_sector(void * hw, uint32_t addr) {
