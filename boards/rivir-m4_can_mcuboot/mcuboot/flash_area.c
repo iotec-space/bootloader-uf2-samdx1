@@ -17,8 +17,8 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 	{
 		.fa_id = FLASH_AREA_IMAGE_SCRATCH,
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00007000,  // 28 K
-		.fa_size = 0x00001000,  // 4 K
+		.fa_off  = 0x00040000,  // 256 K
+		.fa_size = 0x00008000,  // 32 K
 	},
 
 	{
@@ -26,6 +26,13 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00008000,  // 32 K
 		.fa_size = 0x00038000,  // 256 K - 32 K = 224 K
+	},
+
+	{
+		.fa_id = FLASH_AREA_SPARE,
+		.fa_device_id = FLASH_DEV_INTERNAL,
+		.fa_off  = 0x00007000,  // 28 K
+		.fa_size = 0x00001000,  // 4 K
 	},
 
 	{
@@ -40,30 +47,48 @@ static int fa_index_by_image[IMAGES_MAX * 2] = {
 	2, 4
 };
 
-int flash_area_open(uint8_t id, const struct flash_area **fa)
+
+struct flash_hw {
+	const struct flash_driver * driver;
+	void * hw;
+};
+
+extern const struct flash_driver samx_flash_driver;
+const struct flash_hw flash_hw[] = {
+	{ .driver = &samx_flash_driver, .hw = 0 },
+};
+
+
+int flash_area_open(uint8_t id, const struct flash_area **_fa)
 {
 	if (id >= FLASH_AREA_ID_MAX)
 		return -1;
 
-	struct flash_area * fa_active = &flash_areas[id];
-	fa_active->fa_open_counter++;
+	struct flash_area * fa = &flash_areas[id];
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	int res = 0;
 
-	if (fa_active->fa_open_counter == 1) {  // First time: open the flash
-		// Do whatever to open the flash
+	fa->fa_open_counter++;
+	if (fa->fa_open_counter == 1) {  // First time: open the flash
+		res = fd->open(hw);
 	}
 
-	*fa = fa_active;
-	return 0;
+	*_fa = fa;
+	return res;
 }
 
-void flash_area_close(const struct flash_area *fa)
+void flash_area_close(const struct flash_area * _fa)
 {
-	struct flash_area * fa_active = (struct flash_area *)fa;
-	fa_active->fa_open_counter--;
+	struct flash_area * fa = (struct flash_area *)_fa;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
 
-	if (fa_active->fa_open_counter <= 0) {  // The last time we are closing it
-		// Do whatever to close the flash
-		fa_active->fa_open_counter = 0;
+	fa->fa_open_counter--;
+	if (fa->fa_open_counter <= 0) {  // The last time we are closing it
+		fd->close(hw);
+
+		fa->fa_open_counter = 0;
 	}
 
 	return;
@@ -71,47 +96,66 @@ void flash_area_close(const struct flash_area *fa)
 
 int flash_area_read(const struct flash_area *fa, uint32_t off, void *dst, uint32_t len)
 {
-	flash_read_words(dst, (void *)(fa->fa_off + off), len / 4);
-	return 0;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	int res;
+
+	res = fd->read(hw, fa->fa_off + off, dst, len);
+	return res;
 }
 
 int flash_area_write(const struct flash_area *fa, uint32_t off,
                      const void *src, uint32_t len)
 {
-	return 0;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	int res;
+
+	res = fd->write(hw, fa->fa_off + off, src, len);
+	return res;
 }
 
 int flash_area_erase(const struct flash_area *fa, uint32_t off, uint32_t len)
 {
-	return 0;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	int res;
+
+	res = fd->erase_sectors(hw, fa->fa_off + off, len);
+	return res;
 }
 
-uint8_t flash_area_erased_val(const struct flash_area *fap)
+uint8_t flash_area_erased_val(const struct flash_area *fa)
 {
-	return 0xFF;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	uint8_t res;
+
+	res = fd->erased_val(hw);
+	return res;
 }
 
 uint32_t flash_area_align(const struct flash_area *fa)
 {
-	return 1;
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	uint32_t res;
+
+	res = fd->align(hw);
+	return res;
 }
 
-#define SECTOR_SIZE 4096
 int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors)
 {
-    size_t off;
-	uint32_t total_count = 0;
-    const struct flash_area *fa = &flash_areas[fa_id];
+	struct flash_area * fa = &flash_areas[fa_id];
+	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
+	void * hw = flash_hw[fa->fa_device_id].hw;
+	int res;
 
-	for (off = 0; off < fa->fa_size; off += SECTOR_SIZE)
-	{
-	    sectors[total_count].fs_off = off;
-	    sectors[total_count].fs_size = SECTOR_SIZE;
-	    total_count++;
-	}
-    *count = total_count;
-    return 0;
+	res = fd->get_sectors(hw, fa->fa_off, fa->fa_size, count, sectors);
+	return res;
 }
+
 
 int flash_area_id_from_multi_image_slot(int image_index, int slot)
 {

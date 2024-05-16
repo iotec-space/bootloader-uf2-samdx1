@@ -62,6 +62,7 @@
 // #define MCUBOOT_DIRECT_XIP
 // #define MCUBOOT_SWAP_USING_MOVE 1
 #define MCUBOOT_SWAP_USING_SCRATCH 1
+// #define MCUBOOT_OVERWRITE_ONLY
 
 /* Uncomment to enable the overwrite-only code path. */
 /* #define MCUBOOT_OVERWRITE_ONLY */
@@ -88,10 +89,14 @@
  * available.
  */
 
+
+// For UF2+MCUboot, the encryption provider is defined on the command-line (-D) because it needs to be
+// available for UF2 code as well as MCUboot code
+ 
 /* Uncomment to use ARM's mbedTLS cryptographic primitives */
 // #define MCUBOOT_USE_MBED_TLS
 /* Uncomment to use Tinycrypt's. */
-#define MCUBOOT_USE_TINYCRYPT
+// #define MCUBOOT_USE_TINYCRYPT
 
 /*
  * Always check the signature of the image in the primary slot before booting,
