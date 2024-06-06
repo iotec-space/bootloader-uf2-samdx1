@@ -17,8 +17,8 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 	{
 		.fa_id = FLASH_AREA_IMAGE_SCRATCH,
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x0000F000,  // 60 K
-		.fa_size = 0x00001000,  // 4 K
+		.fa_off  = 0x00080000,  // 512 K
+		.fa_size = 0x00010000,  // 64 K
 	},
 
 	{
@@ -31,8 +31,8 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 	{
 		.fa_id = FLASH_AREA_SPARE,
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00080000,  // 512 K
-		.fa_size = 0x00010000,  // 64 K
+		.fa_off  = 0x0000F000,  // 60 K
+		.fa_size = 0x00001000,  // 4 K
 	},
 
 	{
