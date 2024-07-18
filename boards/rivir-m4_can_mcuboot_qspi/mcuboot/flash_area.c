@@ -11,28 +11,29 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_BOOTLOADER,
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00000000,
-		.fa_size = 0x00007000,   // 28 K
+		.fa_size = 0x00008000,   // 32 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SCRATCH,
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00007000,  // 28 K
-		.fa_size = 0x00001000,  // 4 K
+		.fa_off  = 0x00008000,  // 32 K
+		.fa_size = 0x00008000,  // 32 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_PRIMARY(0),
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00008000,  // 32 K
-		.fa_size = 0x00078000,  // 512 K - 32 K = 480 K
+		.fa_off  = 0x00010000,  // 64 K
+		.fa_size = 0x00070000,  // 512 K - 64 K = 448 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SECONDARY(0),
-		.fa_device_id = FLASH_DEV_QSPI,
-		.fa_off  = 0x00000000,  // 256 K + 64 K = 330 K
-		.fa_size = 0x00080000,  // 512 K
+//		.fa_device_id = FLASH_DEV_QSPI,
+		.fa_device_id = FLASH_DEV_INTERNAL,
+		.fa_off  = 0x00400000,  // 4 MB (LFS uses first 4 MB)
+		.fa_size = 0x00100000,  // 512 K
 	},
 };
 
