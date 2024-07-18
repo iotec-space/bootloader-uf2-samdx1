@@ -30,15 +30,14 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SECONDARY(0),
-//		.fa_device_id = FLASH_DEV_QSPI,
-		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00400000,  // 4 MB (LFS uses first 4 MB)
-		.fa_size = 0x00100000,  // 512 K
+		.fa_device_id = FLASH_DEV_QSPI,
+		.fa_off  = 0x00100000,  // 1 MB (LFS uses first 1 MB)
+		.fa_size = 0x00080000,  // 512 K
 	},
 };
 
 static int fa_index_by_image[IMAGES_MAX * 2] = {
-	2, 4
+	2, 3
 };
 
 
@@ -48,8 +47,11 @@ struct flash_hw {
 };
 
 extern const struct flash_driver samx_flash_driver;
+extern const struct flash_driver samd_qspiflash_driver;
+
 const struct flash_hw flash_hw[] = {
 	{ .driver = &samx_flash_driver, .hw = 0 },
+	{ .driver = &samd_qspiflash_driver, .hw = 0 },
 };
 
 

@@ -5,6 +5,7 @@
  *
  * Copyright (c) 2019 Adafruit Industries
  * Copyright (c) 2023 Robert Hammelrath
+ * Copyright (c) 2024 RIVIR rivir.space
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,22 +29,32 @@
  *
  */
 
-#include <stdint.h>
+//#include <stdint.h>
 #include <string.h>
-#include "py/obj.h"
-#include "py/runtime.h"
-#include "py/mphal.h"
-#include "py/mperrno.h"
-#include "modmachine.h"
-#include "extmod/modmachine.h"
-#include "extmod/vfs.h"
-#include "pin_af.h"
-#include "clock_config.h"
+//#include "py/obj.h"
+//#include "py/runtime.h"
+//#include "py/mphal.h"
+//#include "py/mperrno.h"
+//#include "modmachine.h"
+//#include "extmod/modmachine.h"
+//#include "extmod/vfs.h"
+//#include "pin_af.h"
+//#include "clock_config.h"
 #include "sam.h"
+#include "flash_map_backend/flash_map_backend.h"
+
+
+#define MICROPY_HW_QSPIFLASH
+
+// TODOs
+#define mp_hal_set_pin_mux(a, b)
+#define mp_hal_delay_us(a)
+#define get_peripheral_freq() (100000000)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #ifdef MICROPY_HW_QSPIFLASH
 
-#include "drivers/memory/external_flash_device.h"
+#include "external_flash_device.h"
 
 // QSPI command codes
 enum
@@ -90,7 +101,7 @@ enum
 #define SECTOR_SIZE (4096)
 
 typedef struct _samd_qspiflash_obj_t {
-    mp_obj_base_t base;
+	int      init_state;
     uint16_t pagesize;
     uint16_t sectorsize;
     uint32_t size;
@@ -103,13 +114,12 @@ static const external_flash_device possible_devices[] = {
     MICROPY_HW_QSPIFLASH
 };
 
-#define EXTERNAL_FLASH_DEVICE_COUNT MP_ARRAY_SIZE(possible_devices)
+#define EXTERNAL_FLASH_DEVICE_COUNT (sizeof(possible_devices) / sizeof(possible_devices[0]))
 static external_flash_device const *flash_device;
 static external_flash_device generic_config = GENERIC;
-extern const mp_obj_type_t samd_qspiflash_type;
 
 // The QSPIflash object is a singleton
-static samd_qspiflash_obj_t qspiflash_obj = { { &samd_qspiflash_type } };
+static samd_qspiflash_obj_t qspiflash_obj;
 
 // Turn off cache and invalidate all data in it.
 static void samd_peripherals_disable_and_clear_cache(void) {
@@ -257,11 +267,13 @@ int get_sfdp_table(uint8_t *table, int maxlen) {
     return len;
 }
 
-static mp_obj_t samd_qspiflash_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    mp_arg_check_num(n_args, n_kw, 0, 0, false);
-
-    // The QSPI is a singleton
+int samd_qspiflash_init(void * hw) {
     samd_qspiflash_obj_t *self = &qspiflash_obj;
+
+    if (self->init_state != 0) {
+    	return self->init_state;
+    }
+
     self->phase = 0;
     self->polarity = 0;
     self->pagesize = PAGE_SIZE;
@@ -306,7 +318,8 @@ static mp_obj_t samd_qspiflash_make_new(const mp_obj_type_t *type, size_t n_args
         bool addr4b = ((sfdp_table[2] >> 1) & 0x03) == 0x02;
         bool supports_qspi_114 = (sfdp_table[2] & 0x40) != 0;
         if (addr4b || !supports_qspi_114) {
-            mp_raise_ValueError(MP_ERROR_TEXT("QSPI mode not supported"));
+        	self->init_state = 0xFF;
+        	return self->init_state;
         }
     }
 
@@ -375,10 +388,24 @@ static mp_obj_t samd_qspiflash_make_new(const mp_obj_type_t *type, size_t n_args
     run_command(QSPI_CMD_WRITE_DISABLE);
     wait_for_flash_ready();
 
-    return self;
+    self->init_state = 1;
+    return self->init_state;
 }
 
-static mp_obj_t samd_qspiflash_read(samd_qspiflash_obj_t *self, uint32_t addr, uint8_t *dest, uint32_t len) {
+static int samd_qspiflash_open(void * hw) {
+    samd_qspiflash_obj_t *self = &qspiflash_obj;
+
+    if (self->init_state == 0) {
+    	samd_qspiflash_init(hw);
+    }
+
+    return self->init_state == 1 ? 0 : -1;
+}
+
+static void samd_qspiflash_close(void * hw) {
+}
+
+static int samd_qspiflash_read(void * hw, uint32_t addr, void * dest, uint32_t len) {
     if (len > 0) {
         wait_for_flash_ready();
         // Command 0x6B 1 line address, 4 line Data
@@ -386,13 +413,15 @@ static mp_obj_t samd_qspiflash_read(samd_qspiflash_obj_t *self, uint32_t addr, u
         read_memory_quad(QSPI_CMD_QUAD_READ, addr, dest, len);
     }
 
-    return mp_const_none;
+    return 0;
 }
 
-static mp_obj_t samd_qspiflash_write(samd_qspiflash_obj_t *self, uint32_t addr, uint8_t *src, uint32_t len) {
+static int samd_qspiflash_write(void * hw, uint32_t addr, const void * src, uint32_t len) {
+    samd_qspiflash_obj_t *self = &qspiflash_obj;
+
     uint32_t length = len;
     uint32_t pos = 0;
-    uint8_t *buf = src;
+    uint8_t *buf = (uint8_t *)src;
 
     while (pos < length) {
         uint16_t maxsize = self->pagesize - pos % self->pagesize;
@@ -406,90 +435,61 @@ static mp_obj_t samd_qspiflash_write(samd_qspiflash_obj_t *self, uint32_t addr, 
         pos += size;
     }
 
-    return mp_const_none;
+    return 0;
 }
 
-static mp_obj_t samd_qspiflash_erase(uint32_t addr) {
+static int samd_qspiflash_erase(void * hw, uint32_t addr) {
     wait_for_flash_ready();
     write_enable();
     erase_command(QSPI_CMD_ERASE_SECTOR, addr);
 
-    return mp_const_none;
+    return 0;
 }
 
-static mp_obj_t samd_qspiflash_readblocks(size_t n_args, const mp_obj_t *args) {
-    samd_qspiflash_obj_t *self = MP_OBJ_TO_PTR(args[0]);
-    uint32_t offset = (mp_obj_get_int(args[1]) * self->sectorsize);
-    mp_buffer_info_t bufinfo;
-    mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_WRITE);
-    if (n_args == 4) {
-        offset += mp_obj_get_int(args[3]);
+static int samd_qspiflash_erase_sectors(void * hw, uint32_t start, uint32_t len) {
+    samd_qspiflash_obj_t *self = &qspiflash_obj;
+
+	for (uint32_t addr = start; addr < start + len; addr += self->sectorsize) {
+		samd_qspiflash_erase(hw, addr);
     }
-
-    // Read data to flash (adf4 API)
-    samd_qspiflash_read(self, offset, bufinfo.buf, bufinfo.len);
-
-    return mp_const_none;
+	return 0;
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(samd_qspiflash_readblocks_obj, 3, 4, samd_qspiflash_readblocks);
 
-static mp_obj_t samd_qspiflash_writeblocks(size_t n_args, const mp_obj_t *args) {
-    samd_qspiflash_obj_t *self = MP_OBJ_TO_PTR(args[0]);
-    uint32_t offset = (mp_obj_get_int(args[1]) * self->sectorsize);
-    mp_buffer_info_t bufinfo;
-    mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_READ);
-    if (n_args == 3) {
-        samd_qspiflash_erase(offset);
-        // TODO check return value
-    } else {
-        offset += mp_obj_get_int(args[3]);
-    }
-    // Write data to flash (adf4 API)
-    samd_qspiflash_write(self,  offset, bufinfo.buf, bufinfo.len);
-    // TODO check return value
-    return mp_const_none;
+static uint8_t samd_qspiflash_erased_val(void * hw) {
+	return 0xFF;
 }
-static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(samd_qspiflash_writeblocks_obj, 3, 4, samd_qspiflash_writeblocks);
 
-static mp_obj_t samd_qspiflash_ioctl(mp_obj_t self_in, mp_obj_t cmd_in, mp_obj_t arg_in) {
-    samd_qspiflash_obj_t *self = MP_OBJ_TO_PTR(self_in);
-    mp_int_t cmd = mp_obj_get_int(cmd_in);
-
-    switch (cmd) {
-        case MP_BLOCKDEV_IOCTL_INIT:
-            return MP_OBJ_NEW_SMALL_INT(0);
-        case MP_BLOCKDEV_IOCTL_DEINIT:
-            return MP_OBJ_NEW_SMALL_INT(0);
-        case MP_BLOCKDEV_IOCTL_SYNC:
-            return MP_OBJ_NEW_SMALL_INT(0);
-        case MP_BLOCKDEV_IOCTL_BLOCK_COUNT:
-            return MP_OBJ_NEW_SMALL_INT(self->size / self->sectorsize);
-        case MP_BLOCKDEV_IOCTL_BLOCK_SIZE:
-            return MP_OBJ_NEW_SMALL_INT(self->sectorsize);
-        case MP_BLOCKDEV_IOCTL_BLOCK_ERASE: {
-            samd_qspiflash_erase(mp_obj_get_int(arg_in) * self->sectorsize);
-            // TODO check return value
-            return MP_OBJ_NEW_SMALL_INT(0);
-        }
-        default:
-            return mp_const_none;
-    }
+static uint32_t samd_qspiflash_align(void * hw) {
+	return 1;
 }
-static MP_DEFINE_CONST_FUN_OBJ_3(samd_qspiflash_ioctl_obj, samd_qspiflash_ioctl);
 
-static const mp_rom_map_elem_t samd_qspiflash_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_readblocks), MP_ROM_PTR(&samd_qspiflash_readblocks_obj) },
-    { MP_ROM_QSTR(MP_QSTR_writeblocks), MP_ROM_PTR(&samd_qspiflash_writeblocks_obj) },
-    { MP_ROM_QSTR(MP_QSTR_ioctl), MP_ROM_PTR(&samd_qspiflash_ioctl_obj) },
+static int samd_qspiflash_get_sectors(void * hw, uint32_t base, uint32_t len, uint32_t *count, struct flash_sector *sectors) {
+    samd_qspiflash_obj_t *self = &qspiflash_obj;
+
+    uint32_t addr;
+	uint32_t i = 0;
+
+	for (i = 0, addr = base; addr < base + len; i++, addr += self->sectorsize)
+	{
+	    sectors[i].fs_off = addr - base;
+	    sectors[i].fs_size = self->sectorsize;
+	}
+	*count = i;
+
+	return 0;
+}
+
+
+const struct flash_driver samd_qspiflash_driver = {
+	.open = samd_qspiflash_open,
+	.close = samd_qspiflash_close,
+	.read = samd_qspiflash_read,
+	.write = samd_qspiflash_write,
+	.erase_sector = samd_qspiflash_erase,
+	.erase_sectors = samd_qspiflash_erase_sectors,
+	.erased_val = samd_qspiflash_erased_val,
+	.align = samd_qspiflash_align,
+	.get_sectors = samd_qspiflash_get_sectors
 };
-static MP_DEFINE_CONST_DICT(samd_qspiflash_locals_dict, samd_qspiflash_locals_dict_table);
-
-MP_DEFINE_CONST_OBJ_TYPE(
-    samd_qspiflash_type,
-    MP_QSTR_Flash,
-    MP_TYPE_FLAG_NONE,
-    make_new, samd_qspiflash_make_new,
-    locals_dict, &samd_qspiflash_locals_dict
-    );
 
 #endif // MICROPY_HW_QSPI_FLASH
