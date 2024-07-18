@@ -32,12 +32,14 @@ UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 ifeq ($(CHIP_FAMILY), samd21)
 LINKER_SCRIPT=scripts/samd21j18a.ld
 BOOTLOADER_SIZE=8192
+APP_START=8192
 SELF_LINKER_SCRIPT=scripts/samd21j18a_self.ld
 endif
 
 ifeq ($(CHIP_FAMILY), samd51)
 LINKER_SCRIPT=scripts/samd51j19a.ld
 BOOTLOADER_SIZE=16384
+APP_START=16384
 SELF_LINKER_SCRIPT=scripts/samd51j19a_self.ld
 endif
 
@@ -100,12 +102,13 @@ WFLAGS += -Wno-nested-externs
 
 CFLAGS += -DWITH_MCUBOOT
 BOOTLOADER_SIZE=32768
+APP_START=65536
 
 
 INCLUDES += -I$(BOARD_DIR)/mcuboot
 
 MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_area.c
-MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_samx_mcuboot.c
+#MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_samx_mcuboot.c
 
 MCUBOOT_OBJECTS += $(patsubst $(BOARD_DIR)/mcuboot/%.c,$(BUILD_PATH)/mcuboot/%.o,$(MCUBOOT_BOARD_SOURCES))
 
@@ -260,7 +263,7 @@ $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 		 -T$(SELF_LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/update-$(NAME).map -o $(BUILD_PATH)/update-$(NAME).elf $(SELF_OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/update-$(NAME).elf $(BUILD_PATH)/update-$(NAME).bin
-	python3 lib/uf2/utils/uf2conv.py -b $(BOOTLOADER_SIZE) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
+	python3 lib/uf2/utils/uf2conv.py -b $(APP_START) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
 
 $(BUILD_PATH)/%.o: src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
 	echo "$<"
@@ -270,7 +273,7 @@ $(BUILD_PATH)/%.o: $(BUILD_PATH)/%.c
 	$(CC) $(CFLAGS) $(BLD_EXTA_FLAGS) $(INCLUDES) $< -o $@
 
 $(BUILD_PATH)/selfdata.c: $(EXECUTABLE) scripts/gendata.py src/sketch.cpp
-	python3 scripts/gendata.py $(BOOTLOADER_SIZE) $(EXECUTABLE)
+	python3 scripts/gendata.py $(APP_START) $(EXECUTABLE)
 
 clean:
 	rm -rf build
