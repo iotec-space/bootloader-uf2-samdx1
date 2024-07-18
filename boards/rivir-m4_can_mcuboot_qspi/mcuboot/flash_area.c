@@ -32,7 +32,7 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_IMAGE_SECONDARY(0),
 		.fa_device_id = FLASH_DEV_QSPI,
 		.fa_off  = 0x00100000,  // 1 MB (LFS uses first 1 MB)
-		.fa_size = 0x00080000,  // 512 K
+		.fa_size = 0x00070000,  // 512 KB allocated, but must be the same size as primary
 	},
 };
 
