@@ -108,7 +108,7 @@ APP_START=65536
 INCLUDES += -I$(BOARD_DIR)/mcuboot
 
 MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_area.c
-#MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_samx_mcuboot.c
+MCUBOOT_BOARD_SOURCES += $(BOARD_DIR)/mcuboot/flash_samx_mcuboot.c
 
 MCUBOOT_OBJECTS += $(patsubst $(BOARD_DIR)/mcuboot/%.c,$(BUILD_PATH)/mcuboot/%.o,$(MCUBOOT_BOARD_SOURCES))
 

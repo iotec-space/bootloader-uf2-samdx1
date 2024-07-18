@@ -74,7 +74,7 @@
 #endif
 
 /* Uncomment to enable the direct-xip code path. */
-/*#define MCUBOOT_DIRECT_XIP */
+/* #define MCUBOOT_DIRECT_XIP */
 /* Uncomment to enable the revert mechanism in direct-xip mode. */
 /* #define MCUBOOT_DIRECT_XIP_REVERT */
 
@@ -89,6 +89,10 @@
  * available.
  */
 
+
+// For UF2+MCUboot, the encryption provider is defined on the command-line (-D) because it needs to be
+// available for UF2 code as well as MCUboot code
+ 
 /* Uncomment to use ARM's mbedTLS cryptographic primitives */
 // #define MCUBOOT_USE_MBED_TLS
 /* Uncomment to use Tinycrypt's. */

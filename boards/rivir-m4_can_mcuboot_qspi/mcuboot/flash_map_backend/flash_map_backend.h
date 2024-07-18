@@ -18,7 +18,7 @@ struct flash_area
   uint8_t     fa_device_id;  /* The device ID (usually there's only one) */
   uint16_t    pad16;         /* Padding */
   uint32_t    fa_off;        /* The flash offset from the beginning */
-  uint32_t    fa_size;       /* The size of this sector */
+  uint32_t    fa_size;       /* The size of this area */
 
   /* Implementation-specific fields */
   int         fa_open_counter;
@@ -30,6 +30,19 @@ struct flash_sector
 {
   uint32_t fs_off;   /* Offset of this sector, from the start of its flash area (not device). */
   uint32_t fs_size;  /* Size of this sector, in bytes. */
+};
+
+
+struct flash_driver {
+	int (*open)(void * hw);
+	void (*close)(void * hw);
+	int (*read)(void * hw, uint32_t addr, void * dest, uint32_t len);
+	int (*write)(void * hw, uint32_t addr, const void * src, uint32_t len);
+	int (*erase_sector)(void * hw, uint32_t addr);
+	int (*erase_sectors)(void * hw, uint32_t addr, uint32_t len);
+	uint8_t (*erased_val)(void * hw);
+	uint32_t (*align)(void * hw);
+	int (*get_sectors)(void * hw, uint32_t addr, uint32_t len, uint32_t *count, struct flash_sector *sectors);
 };
 
 
@@ -68,6 +81,14 @@ static inline uint32_t flash_sector_get_size(const struct flash_sector *fs)
 }
 
 
+int flash_area_id_from_multi_image_slot(int image_index, int slot);
+int flash_area_id_from_image_slot(int slot);
+int flash_area_id_to_multi_image_slot(int image_index, int area_id);
+int flash_area_id_from_image_offset(uint32_t offset);
+
+
+// Drivers for flash devices
+
 int flash_area_open(uint8_t id, const struct flash_area **fa);
 void flash_area_close(const struct flash_area *fa);
 int flash_area_read(const struct flash_area *fa, uint32_t off, void *dst, uint32_t len);
@@ -76,10 +97,6 @@ int flash_area_erase(const struct flash_area *fa, uint32_t off, uint32_t len);
 uint32_t flash_area_align(const struct flash_area *fa);
 uint8_t flash_area_erased_val(const struct flash_area *fa);
 int flash_area_get_sectors(int fa_id, uint32_t *count, struct flash_sector *sectors);
-int flash_area_id_from_multi_image_slot(int image_index, int slot);
-int flash_area_id_from_image_slot(int slot);
-int flash_area_id_to_multi_image_slot(int image_index, int area_id);
-int flash_area_id_from_image_offset(uint32_t offset);
 
 
 #ifdef __cplusplus
