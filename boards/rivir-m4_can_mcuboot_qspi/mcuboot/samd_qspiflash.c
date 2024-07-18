@@ -45,12 +45,45 @@
 
 
 #define MICROPY_HW_QSPIFLASH
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-// TODOs
-#define mp_hal_set_pin_mux(a, b)
-#define mp_hal_delay_us(a)
-#define get_peripheral_freq() (100000000)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
+// init_samd51.c leaves everything running at 48 MHz
+#define get_peripheral_freq() (48000000)
+
+// From pin_af.h
+#define ALT_FCT_QSPI      7
+
+// From mp_hal_port.h
+#define mp_hal_pin_obj_t uint
+
+// From mp_hal_port.c
+static void mp_hal_set_pin_mux(uint pin, uint8_t mux) {
+    int pin_grp = pin / 32;
+    int port_grp = (pin % 32) / 2;
+    PORT->Group[pin_grp].PINCFG[pin % 32].bit.PMUXEN = 1; // Enable Mux
+    if (pin & 1) {
+        PORT->Group[pin_grp].PMUX[port_grp].bit.PMUXO = mux;
+    } else {
+        PORT->Group[pin_grp].PMUX[port_grp].bit.PMUXE = mux;
+    }
+}
+
+// Clock not changed from 48 MHz, 48 cycles per us
+// Assembly shows 3 instruction per loop (add, compare, branch)
+// Assume this is 1 + 1 + 2 = 4 cycles per loop
+// Therefore, we need 12 loops per us, or 12000 loops per ms
+// Note that UF2 bootloader has around 6000 loops per ms
+// Perhaps instructions are 2 cycles each?
+
+#define LOOPS_PER_US 12
+
+static void mp_hal_delay_us(uint32_t us) {
+	int loops = us * LOOPS_PER_US;
+	for (uint32_t i = 0; i < loops; i++) {
+        asm volatile("");  // Prevent the loop from being optimised away
+	}
+}
+
 
 #ifdef MICROPY_HW_QSPIFLASH
 
