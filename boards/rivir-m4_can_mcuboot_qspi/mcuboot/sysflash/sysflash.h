@@ -10,7 +10,7 @@
 #define FLASH_AREA_IMAGE_SCRATCH                 (1)
 #define FLASH_AREA_IMAGE_PRIMARY(image_index)    ((image_index*2) + 2)
 #define FLASH_AREA_SPARE                         (3)
-#define FLASH_AREA_IMAGE_SECONDARY(image_index)  ((image_index*1) + 4)
+#define FLASH_AREA_IMAGE_SECONDARY(image_index)  ((image_index*2) + 3)
 
 #define IMAGES_MAX 1
 #define SLOTS_MAX  2

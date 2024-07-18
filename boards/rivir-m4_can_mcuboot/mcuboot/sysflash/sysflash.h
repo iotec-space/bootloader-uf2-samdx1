@@ -8,7 +8,7 @@
 
 #define FLASH_AREA_BOOTLOADER                    (0)
 #define FLASH_AREA_IMAGE_SCRATCH                 (1)
-#define FLASH_AREA_IMAGE_PRIMARY(image_index)    ((image_index*2) + 2)
+#define FLASH_AREA_IMAGE_PRIMARY(image_index)    ((image_index*1) + 2)
 #define FLASH_AREA_SPARE                         (3)
 #define FLASH_AREA_IMAGE_SECONDARY(image_index)  ((image_index*1) + 4)
 
