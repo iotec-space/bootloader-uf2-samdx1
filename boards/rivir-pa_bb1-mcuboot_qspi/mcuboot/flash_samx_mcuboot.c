@@ -1,4 +1,4 @@
-
+// Copyright © RIVIR rivir.space 2024
 
 
 #include <string.h>

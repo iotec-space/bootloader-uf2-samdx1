@@ -44,7 +44,7 @@
 #include "flash_map_backend/flash_map_backend.h"
 
 
-#define MICROPY_HW_QSPIFLASH
+#define MICROPY_HW_QSPIFLASH  GD25Q16C
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 // init_samd51.c leaves everything running at 48 MHz

@@ -1,4 +1,4 @@
-
+// Copyright © RIVIR rivir.space 2024
 
 
 #include <string.h>
@@ -12,20 +12,20 @@
         ;
 
 
-int samx_open(void * hw) {
+static int samx_open(void * hw) {
 	return 0;
 }
 
-void samx_close(void * hw) {
+static void samx_close(void * hw) {
 }
 
-int samx_read(void * hw, uint32_t src, void * dest, uint32_t len) {
+static int samx_read(void * hw, uint32_t src, void * dest, uint32_t len) {
     wait_ready();
     memcpy(dest, (void *)src, len);
 	return 0;
 }
 
-int samx_write(void * hw, uint32_t dest, const void * src, uint32_t len) {
+static int samx_write(void * hw, uint32_t dest, const void * src, uint32_t len) {
     uint32_t dest_a = dest & ~0x03;  // 4-byte aligned
     int ofs = dest - dest_a;         // Offset between actual address and aligned address
     uint32_t qwbuf[4];
@@ -69,7 +69,7 @@ int samx_write(void * hw, uint32_t dest, const void * src, uint32_t len) {
     return 0;
 }
 
-int samx_erase_sector(void * hw, uint32_t addr) {
+static int samx_erase_sector(void * hw, uint32_t addr) {
     wait_ready();
 
     // Execute "EB" Erase Block
@@ -79,18 +79,18 @@ int samx_erase_sector(void * hw, uint32_t addr) {
     return 0;
 }
 
-int samx_erase_sectors(void * hw, uint32_t start, uint32_t len) {
+static int samx_erase_sectors(void * hw, uint32_t start, uint32_t len) {
     for (uint32_t addr = start; addr < start + len; addr += NVMCTRL_BLOCK_SIZE) {
         samx_erase_sector(hw, addr);
     }
 	return 0;
 }
 
-uint8_t samx_erased_val(void * hw) {
+static uint8_t samx_erased_val(void * hw) {
 	return 0xFF;
 }
 
-uint32_t samx_align(void * hw) {
+static uint32_t samx_align(void * hw) {
 	return 1;
 }
 
