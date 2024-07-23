@@ -92,7 +92,7 @@
 
 // For UF2+MCUboot, the encryption provider is defined on the command-line (-D) because it needs to be
 // available for UF2 code as well as MCUboot code
- 
+
 /* Uncomment to use ARM's mbedTLS cryptographic primitives */
 // #define MCUBOOT_USE_MBED_TLS
 /* Uncomment to use Tinycrypt's. */
@@ -115,7 +115,7 @@
 
 /* Default maximum number of flash sectors per image slot; change
  * as desirable. */
-#define MCUBOOT_MAX_IMG_SECTORS 128
+#define MCUBOOT_MAX_IMG_SECTORS 256
 
 /* Default number of separately updateable images; change in case of
  * multiple images. */
