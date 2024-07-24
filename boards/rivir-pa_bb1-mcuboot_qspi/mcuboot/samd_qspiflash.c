@@ -468,6 +468,7 @@ static int samd_qspiflash_write(void * hw, uint32_t addr, const void * src, uint
         pos += size;
     }
 
+    wait_for_flash_ready();
     return 0;
 }
 
@@ -476,6 +477,7 @@ static int samd_qspiflash_erase(void * hw, uint32_t addr) {
     write_enable();
     erase_command(QSPI_CMD_ERASE_SECTOR, addr);
 
+    wait_for_flash_ready();
     return 0;
 }
 

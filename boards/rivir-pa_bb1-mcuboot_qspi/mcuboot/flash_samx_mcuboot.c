@@ -66,6 +66,7 @@ static int samx_write(void * hw, uint32_t dest, const void * src, uint32_t len) 
         qwbuf_p = (uint8_t *)qwbuf;  // Point back to the start of the QWbuffer.
     }
 
+    wait_ready();
     return 0;
 }
 
@@ -75,6 +76,7 @@ static int samx_erase_sector(void * hw, uint32_t addr) {
     // Execute "EB" Erase Block
     NVMCTRL->ADDR.reg = addr;
     NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
+
     wait_ready();
     return 0;
 }
