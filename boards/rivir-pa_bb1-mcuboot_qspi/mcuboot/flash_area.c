@@ -2,6 +2,7 @@
 
 #include "flash_map_backend/flash_map_backend.h"
 #include "sysflash/sysflash.h"
+#include "mcuboot_config/mcuboot_logging.h"
 
 #include "uf2.h"
 
@@ -11,14 +12,14 @@ static struct flash_area flash_areas[FLASH_AREA_ID_MAX] =
 		.fa_id = FLASH_AREA_BOOTLOADER,
 		.fa_device_id = FLASH_DEV_INTERNAL,
 		.fa_off  = 0x00000000,
-		.fa_size = 0x00008000,   // 32 K
+		.fa_size = 0x0000C000,   // 48 K
 	},
 
 	{
 		.fa_id = FLASH_AREA_IMAGE_SCRATCH,
 		.fa_device_id = FLASH_DEV_INTERNAL,
-		.fa_off  = 0x00008000,  // 32 K
-		.fa_size = 0x00008000,  // 32 K
+		.fa_off  = 0x0000C000,  // 48 K
+		.fa_size = 0x00004000,  // 16 K
 	},
 
 	{
@@ -96,6 +97,8 @@ int flash_area_read(const struct flash_area *fa, uint32_t off, void *dst, uint32
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
 
+	MCUBOOT_LOG_DBG("fa_rd: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
+
 	res = fd->read(hw, fa->fa_off + off, dst, len);
 	return res;
 }
@@ -107,6 +110,8 @@ int flash_area_write(const struct flash_area *fa, uint32_t off,
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
 
+	MCUBOOT_LOG_DBG("fa_wr: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
+
 	res = fd->write(hw, fa->fa_off + off, src, len);
 	return res;
 }
@@ -116,6 +121,8 @@ int flash_area_erase(const struct flash_area *fa, uint32_t off, uint32_t len)
 	const struct flash_driver * fd = flash_hw[fa->fa_device_id].driver;
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
+
+	MCUBOOT_LOG_DBG("fa_er: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
 
 	res = fd->erase_sectors(hw, fa->fa_off + off, len);
 	return res;
