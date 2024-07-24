@@ -62,7 +62,7 @@
 // #define MCUBOOT_DIRECT_XIP
 // #define MCUBOOT_SWAP_USING_MOVE 1
 #define MCUBOOT_SWAP_USING_SCRATCH 1
-// #define MCUBOOT_OVERWRITE_ONLY
+//#define MCUBOOT_OVERWRITE_ONLY
 
 /* Uncomment to enable the overwrite-only code path. */
 /* #define MCUBOOT_OVERWRITE_ONLY */
@@ -145,7 +145,7 @@
  *    MCUBOOT_LOG_ERR > MCUBOOT_LOG_WRN > MCUBOOT_LOG_INF > MCUBOOT_LOG_DBG
  */
 
-//#define MCUBOOT_HAVE_LOGGING 1
+#define MCUBOOT_HAVE_LOGGING 1
 
 /*
  * Assertions
