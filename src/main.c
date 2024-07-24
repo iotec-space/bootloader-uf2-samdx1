@@ -103,6 +103,7 @@ static void start_via_vtor(uint32_t *vtor) {
 	asm("bx %0" ::"r"(vtor[1]));
 }
 
+#define LOGGING 1
 #if LOGGING
 
 #define LOG(msg) 							\
