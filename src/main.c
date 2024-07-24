@@ -103,7 +103,21 @@ static void start_via_vtor(uint32_t *vtor) {
 	asm("bx %0" ::"r"(vtor[1]));
 }
 
+#if LOGGING
+
+#define LOG(msg) 							\
+	do {									\
+		usart_putdata(msg, strlen(msg));	\
+	} while (0)
+
+#else
+#define LOG(msg)
+#endif
+
+
 static void check_start_application(void) {
+    usart_open();
+    LOG("---- MCUBOOT ----\n");
 
     if (RESET_CONTROLLER->RCAUSE.bit.POR) {
         *DBL_TAP_PTR = 0;
@@ -126,12 +140,16 @@ static void check_start_application(void) {
     FIH_CALL(boot_go, fih_rc, &rsp);
     if (FIH_EQ(fih_rc, FIH_SUCCESS))
     {
+        LOG("---- APP ----\n");
+
         LED_MSC_OFF();
 
         // Find the VTOR in the image.
     	uint32_t * vtor_addr = (uint32_t *)(rsp.br_image_off + rsp.br_hdr->ih_hdr_size);
 	    start_via_vtor(vtor_addr);
     }
+
+    LOG("---- FAIL ----\n");
 }
 
 #else
