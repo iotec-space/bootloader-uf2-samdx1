@@ -3,4 +3,4 @@
 	url = https://github.com/Microsoft/uf2.git
 [submodule "lib/mcuboot"]
 	path = lib/mcuboot
-	url = git@github.com-iotec:iotec-space/mcuboot.git
+	url = git@github.com:iotec-space/mcuboot.git
