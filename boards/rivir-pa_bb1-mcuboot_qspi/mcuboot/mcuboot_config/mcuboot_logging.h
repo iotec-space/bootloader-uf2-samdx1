@@ -23,6 +23,7 @@
 #define __MCUBOOT_LOGGING_H__
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define MCUBOOT_LOG_LEVEL_OFF      0
 #define MCUBOOT_LOG_LEVEL_ERROR    1

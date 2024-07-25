@@ -1,8 +1,8 @@
 // Copyright © RIVIR rivir.space 2024
 
+#include "bootutil/bootutil_log.h"
 #include "flash_map_backend/flash_map_backend.h"
 #include "sysflash/sysflash.h"
-#include "mcuboot_config/mcuboot_logging.h"
 
 #include "uf2.h"
 

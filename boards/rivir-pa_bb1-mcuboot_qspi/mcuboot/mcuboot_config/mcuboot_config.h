@@ -146,6 +146,7 @@
  */
 
 #define MCUBOOT_HAVE_LOGGING 1
+#define MCUBOOT_LOG_LEVEL MCUBOOT_LOG_LEVEL_INFO
 
 /*
  * Assertions
