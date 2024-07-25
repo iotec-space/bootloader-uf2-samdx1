@@ -2,7 +2,15 @@ BOARD=zero
 BOARD_DIR ?= boards/$(BOARD)
 -include Makefile.user
 include $(BOARD_DIR)/board.mk
-CC=arm-none-eabi-gcc
+
+ifneq ($(CC_PREFIX),)
+CC = $(CC_PREFIX)gcc
+CC_OBJCOPY = $(CC_PREFIX)objcopy
+CC_SIZE = $(CC_PREFIX)size
+CC_OBJDUMP = $(CC_PREFIX)objdump
+CC_GDB = $(CC_PREFIX)gdb
+endif 
+
 ifeq ($(CHIP_FAMILY), samd21)
 COMMON_FLAGS = -mthumb -mcpu=cortex-m0plus -Os -g -DSAMD21
 endif
@@ -249,9 +257,9 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
 		 -T$(LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/$(NAME).map -o $(BUILD_PATH)/$(NAME).elf $(OBJECTS)
-	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/$(NAME).elf $@
+	$(CC_OBJCOPY) -O binary $(BUILD_PATH)/$(NAME).elf $@
 	@echo
-	-@arm-none-eabi-size $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
+	-@$(CC_SIZE) $(BUILD_PATH)/$(NAME).elf | awk '{ s=$$1+$$2; print } END { print ""; print "Space left: " ($(BOOTLOADER_SIZE)-s) }'
 	@echo
 	ln -fs $(NAME).bin $(EXECUTABLE_LATEST).bin  # For flashing
 	ln -fs $(NAME).elf $(EXECUTABLE_LATEST).elf  # For debugging
@@ -263,7 +271,7 @@ $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \
 		 -T$(SELF_LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/update-$(NAME).map -o $(BUILD_PATH)/update-$(NAME).elf $(SELF_OBJECTS)
-	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/update-$(NAME).elf $(BUILD_PATH)/update-$(NAME).bin
+	$(CC_OBJCOPY) -O binary $(BUILD_PATH)/update-$(NAME).elf $(BUILD_PATH)/update-$(NAME).bin
 	python3 lib/uf2/utils/uf2conv.py -b $(APP_START) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
 
 $(BUILD_PATH)/%.o: src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
@@ -280,13 +288,13 @@ clean:
 	rm -rf build
 
 gdb:
-	arm-none-eabi-gdb $(BUILD_PATH)/$(NAME).elf
+	$(CC_GDB) $(BUILD_PATH)/$(NAME).elf
 
 tui:
-	arm-none-eabi-gdb -tui $(BUILD_PATH)/$(NAME).elf
+	$(CC_GDB) -tui $(BUILD_PATH)/$(NAME).elf
 
 %.asmdump: %.o
-	arm-none-eabi-objdump -d $< > $@
+	$(CC_OBJDUMP) -d $< > $@
 
 applet0: $(BUILD_PATH)/flash.asmdump
 	node scripts/genapplet.js $< flash_write
