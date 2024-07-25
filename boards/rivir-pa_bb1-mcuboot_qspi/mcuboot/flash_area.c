@@ -97,7 +97,7 @@ int flash_area_read(const struct flash_area *fa, uint32_t off, void *dst, uint32
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
 
-	MCUBOOT_LOG_DBG("fa_rd: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
+	BOOT_LOG_DBG("fa_rd: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
 
 	res = fd->read(hw, fa->fa_off + off, dst, len);
 	return res;
@@ -110,7 +110,7 @@ int flash_area_write(const struct flash_area *fa, uint32_t off,
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
 
-	MCUBOOT_LOG_DBG("fa_wr: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
+	BOOT_LOG_DBG("fa_wr: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
 
 	res = fd->write(hw, fa->fa_off + off, src, len);
 	return res;
@@ -122,7 +122,7 @@ int flash_area_erase(const struct flash_area *fa, uint32_t off, uint32_t len)
 	void * hw = flash_hw[fa->fa_device_id].hw;
 	int res;
 
-	MCUBOOT_LOG_DBG("fa_er: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
+	BOOT_LOG_DBG("fa_er: %d, %08lx %ld", fa->fa_device_id, fa->fa_off + off, len);
 
 	res = fd->erase_sectors(hw, fa->fa_off + off, len);
 	return res;
