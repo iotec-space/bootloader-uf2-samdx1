@@ -12,3 +12,4 @@ TAGS
 .venv/
 *.pyc
 .settings
+*.pem
